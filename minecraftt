@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Minecraft Server Status Checker</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Minecraft Server Status Checker</h1>
+    <p>Enter the IP address and port number of the Minecraft server to check its status:</p>
+    <form>
+        <label for="server-ip">Server IP Address:</label>
+        <input type="text" id="server-ip" name="server-ip"><br><br>
+        <label for="server-port">Server Port Number:</label>
+        <input type="text" id="server-port" name="server-port"><br><br>
+        <input type="submit" value="Check Status">
+    </form>
+    <br>
+    <div id="status"></div>
+    <script src="script.js"></script>
+</body>
+</html>
+$(document).ready(function() {
+    $('form').submit(function(event) {
+        event.preventDefault();
+        var serverIp = $('#server-ip').val();
+        var serverPort = $('#server-port').val();
+        var apiUrl = `https://api.mcsrvstat.us/2/${serverIp}:${serverPort}`;
+        $.get(apiUrl, function(data) {
+            if (data.online) {
+                var message = `<p>Server is online!</p>`;
+                message += `<p>Version: ${data.version}</p>`;
+                message += `<p>Players online: ${data.players.online}/${data.players.max}</p>`;
+                message += `<p>Server description: ${data.motd.clean.join('<br>')}</p>`;
+            } else {
+                var message = `<p>Server is offline or does not exist.</p>`;
+            }
+            $('#status').html(message);
+        });
+    });
+});
+function getOnlinePlayers(serverIp, serverPort, callback) {
+    var apiUrl = `https://api.mcsrvstat.us/2/${serverIp}:${serverPort}`;
+    $.get(apiUrl, function(data) {
+        if (data.online) {
+            callback(data.players.list);
+        } else {
+            callback(null);
+        }
+    });
+}
+function getPlayerSkin(playerName, callback) {
+    var apiUrl = `https://api.mojang.com/users/profiles/minecraft/${playerName}`;
+    $.get(apiUrl, function(data)
